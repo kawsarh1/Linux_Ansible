@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+
+  tasks:
+    - import_tasks: locale.yaml
+    - import_tasks: updates.yaml
+    - import_tasks: azure-cli.yaml
+    - import_tasks: ce04_install_prereqs.yaml

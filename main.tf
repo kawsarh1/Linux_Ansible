@@ -33,7 +33,7 @@ resource "azurerm_public_ip" "my_terraform_public_ip" {
   name                = "myPublicIP"
   location            = azurerm_resource_group.vm_rg.location
   resource_group_name = azurerm_resource_group.vm_rg.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 # Create Network Security Group and rule
@@ -116,8 +116,8 @@ resource "azurerm_linux_virtual_machine" "az_lin_vm" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -133,6 +133,9 @@ resource "azurerm_linux_virtual_machine" "az_lin_vm" {
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.my_storage_account.primary_blob_endpoint
   }
+
+  custom_data = base64encode(data.template_file.add_anisble_user_script.rendered)
+
 }
 
 resource "azurerm_dev_test_global_vm_shutdown_schedule" "vm_shutdown_schedule" {
@@ -148,4 +151,14 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "vm_shutdown_schedule" {
     enabled = false
 
   }
+
+}
+
+data "template_file" "add_anisble_user_script" {
+  template = templatefile("${path.module}/add_user.tpl", {
+    user        = var.user
+    ssh_pub_key = var.ssh_public_key_file
+    python      = var.default_python
+    }
+  )
 }
